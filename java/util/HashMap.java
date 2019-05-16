@@ -634,14 +634,18 @@ public class HashMap<K,V> extends AbstractMap<K,V>
 
         /**node 长度**/
         int n;
-        /****/
+        /**下一存放数据的数组下标**/
         int i;
 
         if ((tab = table) == null || (n = tab.length) == 0){
             //第一次加载
             n = (tab = resize()).length;
         }
-        if ((p = tab[i = (n - 1) & hash]) == null){
+        // 计算数组下标
+        i = (n - 1) & hash;
+        //
+        p = tab[i];
+        if (p == null){
             /** tab的数组下标位置为空就将value 放入**/
             tab[i] = newNode(hash, key, value, null);
         }
@@ -708,13 +712,17 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                 threshold = Integer.MAX_VALUE;
                 return oldTab;
             }
+            //旧的容量的2次方 小于最大容量 且 旧容量大于默认容量(16)
             else if ((newCap = oldCap << 1) < MAXIMUM_CAPACITY &&
                      oldCap >= DEFAULT_INITIAL_CAPACITY)
+                //新的阀值则是旧阀值的2次方
                 newThr = oldThr << 1; // double threshold
         }
-        else if (oldThr > 0) // initial capacity was placed in threshold
+        else if (oldThr > 0) { // initial capacity was placed in threshold
+            //旧阀值大于0，新阀值=旧阀值
             newCap = oldThr;
-        else {               // zero initial threshold signifies using defaults
+        }else {               // zero initial threshold signifies using defaults
+            //旧阀值<=0,则取默认值
             newCap = DEFAULT_INITIAL_CAPACITY;
             newThr = (int)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
         }
@@ -728,14 +736,19 @@ public class HashMap<K,V> extends AbstractMap<K,V>
             Node<K,V>[] newTab = (Node<K,V>[])new Node[newCap];
         table = newTab;
         if (oldTab != null) {
+            //遍历旧map
             for (int j = 0; j < oldCap; ++j) {
                 Node<K,V> e;
                 if ((e = oldTab[j]) != null) {
                     oldTab[j] = null;
-                    if (e.next == null)
+                    if (e.next == null){
+                        //如果e 元素下个节点没有值，则将此元素放到新数组中，数组位置就是e.hash & (新容量-1)
                         newTab[e.hash & (newCap - 1)] = e;
-                    else if (e instanceof TreeNode)
-                        ((TreeNode<K,V>)e).split(this, newTab, j, oldCap);
+                    }
+                    else if (e instanceof TreeNode) {
+                        // 如果e 元素是TreeNode
+                        ((TreeNode<K, V>) e).split(this, newTab, j, oldCap);
+                    }
                     else { // preserve order
                         Node<K,V> loHead = null, loTail = null;
                         Node<K,V> hiHead = null, hiTail = null;
